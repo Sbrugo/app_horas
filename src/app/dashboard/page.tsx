@@ -28,13 +28,13 @@ export default function DashboardPage() {
         <div className="flex space-x-4 mb-8">
           <Link
             href="/dashboard/clases/nueva"
-            className="w-fit p-4 text-gray-100 bg-purple-600 rounded-xl border-purple-300 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            className="w-fit px-4 py-2 flex items-center font-medium bg-lime-300 border border-lime-600 text-gray-950 rounded-4xl"
           >
-            <span className="text-md text-gray-100">Nueva clase</span>
+            <span className="text-md text-gray-950">Nueva clase</span>
           </Link>
           <Link
             href="/dashboard/clases"
-            className="w-fit p-4 text-gray-100 bg-blue-600 rounded-xl border-blue-300 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="w-fit px-4 py-3 text-gray-100 bg-blue-600 rounded-4xl border-blue-300 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             <span className="text-md text-gray-100">Ver clases</span>
           </Link>

@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [dni, setDni] = useState("");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -15,53 +14,45 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
 
-    if (!email || !password || !dni) {
-      setError("Todos los campos son obligatorios.");
+    if (!email || !password) {
+      setError("Email y DNI son obligatorios.");
       return;
     }
 
-    // This is a placeholder for the actual login logic.
-    // You will need to implement the logic to authenticate the user
-    // with Supabase. This might involve checking the DNI against a
-    // 'professors' table and then signing in the user with email and password.
+    const supabase = createClient();
 
-    console.log("Attempting to log in with:", { email, dni });
-    alert("Funcionalidad de login no implementada. Redirigiendo al dashboard.");
-    router.push("/dashboard");
+    try {
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    /*
-    // Example Supabase login logic (you need to adapt this)
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+      if (authError) {
+        setError("Email o DNI incorrectos.");
+        return;
+      }
 
-    if (error) {
-      setError(error.message)
-    } else {
-      // Additionally, you might want to verify the DNI against your tables
-      // before redirecting.
-      router.push('/dashboard')
+      router.push("/dashboard");
+    } catch (error) {
+      setError("Ocurrió un error inesperado. Por favor, intente de nuevo.");
+      console.error("Login error:", error);
     }
-    */
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-md">
-        <div className="text-center space-y-6">
-          <h1 className="text-4xl font-bold text-gray-800">SyR</h1>
-          <h2 className="text-xl font-semibold text-gray-600">Login</h2>
+      <div className="w-full max-w-md p-8 m-10 rounded-2xl">
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-gray-800 mb-6">SyR</h1>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
-          <div>
+          <div className="flex flex-col items-center">
             <label
               htmlFor="email"
               className="text-md font-medium text-gray-700"
             >
-              Email
+              EMAIL
             </label>
             <input
               id="email"
@@ -71,41 +62,26 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
             />
           </div>
 
-          <div>
+          <div className="flex flex-col items-center">
             <label
               htmlFor="password"
               className="text-md font-medium text-gray-700"
             >
-              Contraseña
+              DNI
             </label>
             <input
               id="password"
               name="password"
-              type="password"
+              type="tel"
               autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="dni" className="text-md font-medium text-gray-700">
-              DNI
-            </label>
-            <input
-              id="dni"
-              name="dni"
-              type="text"
-              required
-              value={dni}
-              onChange={(e) => setDni(e.target.value)}
-              className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
             />
           </div>
 
@@ -114,7 +90,7 @@ export default function LoginPage() {
           <div className="flex justify-center">
             <button
               type="submit"
-              className="w-fit px-10 py-4 font-medium text-white bg-purple-600 rounded-xl hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              className="w-fit px-10 py-3 font-medium text-gray-950 bg-lime-300 border border-lime-600  rounded-4xl hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500"
             >
               Ingresar
             </button>

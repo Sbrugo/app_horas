@@ -5,9 +5,9 @@ interface SummaryCardProps {
 
 export default function SummaryCard({ title, value }: SummaryCardProps) {
   return (
-    <div className="p-10 bg-gray-50 rounded-xl shadow-lg flex flex-col">
+    <div className="py-10 px-6 rounded-xl shadow-lg flex flex-col items-center justify-center bg-white">
       <p className="text-2xl font-bold text-gray-900">{value}</p>
-      <p className="text-sm text-gray-600">{title}</p>
+      <p className="text-md text-gray-600">{title}</p>
     </div>
   );
 }

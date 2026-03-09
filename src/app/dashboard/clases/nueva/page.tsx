@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 const cancellationReasons = [
   "Viaje",
@@ -51,12 +52,14 @@ export default function NewClassPage() {
       return;
     }
 
+    const supabase = createClient();
+
     const classData = {
-      student,
+      student_name: student,
       date,
       day,
       status,
-      cancellationReason: isCancelled
+      cancellation_reason: isCancelled
         ? cancellationReason === "Otro"
           ? otherReason
           : cancellationReason
@@ -64,29 +67,36 @@ export default function NewClassPage() {
       observations,
     };
 
-    console.log("Saving class data:", classData);
-    alert(
-      "Funcionalidad de guardado no implementada. Redirigiendo al dashboard.",
-    );
-    // Here you would typically call a Supabase function to save the data
-    router.push("/dashboard");
+    try {
+      const { error } = await supabase.from("classes").insert([classData]);
+
+      if (error) {
+        throw error;
+      }
+
+      alert("Clase guardada exitosamente.");
+      router.push("/dashboard");
+    } catch (error: any) {
+      setError(
+        "Error al guardar la clase: " +
+          (error.message || "Ocurrió un error inesperado."),
+      );
+      console.error("Error saving class:", error);
+    }
   };
 
   const isCancelled = status.startsWith("Cancelada");
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
-        <header className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Cargar Nueva Clase
-          </h1>
-          <p className="text-md text-gray-500 mt-1">
-            Regla: No se puede editar después de 24 horas.
-          </p>
-        </header>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <header className="mb-6 border-b pb-4">
+        <h1 className="text-md font-bold text-gray-900">Cargar Nueva Clase</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Regla: No se puede editar después de 24 horas.
+        </p>
+      </header>
+      <div className="max-w-2xl mx-auto bg-white p-6 rounded-4xl shadow-md">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
               htmlFor="student"
@@ -100,7 +110,7 @@ export default function NewClassPage() {
               value={student}
               onChange={(e) => setStudent(e.target.value)}
               placeholder="Escriba o seleccione un alumno"
-              className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-200 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
@@ -115,7 +125,7 @@ export default function NewClassPage() {
               id="status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-200 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             >
               <option>Asistió</option>
               <option>Cancelada por alumno</option>
@@ -136,7 +146,7 @@ export default function NewClassPage() {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-200 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
             <div>
@@ -151,13 +161,13 @@ export default function NewClassPage() {
                 type="text"
                 value={day}
                 disabled
-                className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-200 border border-gray-300 rounded-xl shadow-sm"
+                className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-200 border border-gray-300 rounded-4xl shadow-sm"
               />
             </div>
           </div>
 
-          {!isCancelled && (
-            <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-xl">
+          {isCancelled && (
+            <div className="p-4 border border-yellow-300 bg-yellow-50 rounded-4xl">
               <label
                 htmlFor="cancellationReason"
                 className="text-md font-medium text-gray-700"
@@ -168,7 +178,7 @@ export default function NewClassPage() {
                 id="cancellationReason"
                 value={cancellationReason}
                 onChange={(e) => setCancellationReason(e.target.value)}
-                className="w-full px-3 py-2 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-3 py-2 mt-1 text-gray-900 bg-gray-200 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               >
                 <option value="">Seleccione un motivo</option>
                 {cancellationReasons.map((reason) => (
@@ -183,7 +193,7 @@ export default function NewClassPage() {
                   value={otherReason}
                   onChange={(e) => setOtherReason(e.target.value)}
                   placeholder="Por favor especifique"
-                  className="w-full px-3 py-2 mt-2 text-gray-900 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full px-3 py-2 mt-2 text-gray-900 bg-gray-200 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
                 />
               )}
             </div>
@@ -201,7 +211,7 @@ export default function NewClassPage() {
               value={observations}
               onChange={(e) => setObservations(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 mt-1 text-gray-900 bg-gray-50 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 mt-1 text-gray-900 bg-gray-200 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             />
           </div>
 
@@ -211,13 +221,13 @@ export default function NewClassPage() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="px-4 py-2 font-medium text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300"
+              className="px-4 py-2 font-medium text-gray-700 bg-gray-200 rounded-4xl hover:bg-gray-300"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 font-medium text-white bg-green-600 rounded-xl hover:bg-green-700"
+              className="px-4 py-2 font-medium bg-lime-300 border border-lime-600 text-gray-950 rounded-4xl hover:bg-green-700"
             >
               ✔ Guardar clase
             </button>
