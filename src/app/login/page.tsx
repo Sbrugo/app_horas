@@ -8,11 +8,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     setError(null);
+    setSuccess(null);
 
     if (!email || !password) {
       setError("Email y DNI son obligatorios.");
@@ -39,6 +40,39 @@ export default function LoginPage() {
     }
   };
 
+  const handleRegister = async () => {
+    setError(null);
+    setSuccess(null);
+
+    if (!email || !password) {
+      setError("Email y DNI son obligatorios para registrarse.");
+      return;
+    }
+
+    const supabase = createClient();
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      if (data.user) {
+        setSuccess(
+          "¡Registro exitoso! Revisa tu correo para confirmar la cuenta.",
+        );
+      }
+    } catch (error) {
+      setError("Ocurrió un error inesperado. Por favor, intente de nuevo.");
+      console.error("Registration error:", error);
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 m-10 rounded-2xl">
@@ -46,7 +80,7 @@ export default function LoginPage() {
           <h1 className="text-4xl font-bold text-gray-800 mb-6">SyR</h1>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        <div className="space-y-6">
           <div className="flex flex-col items-center">
             <label
               htmlFor="email"
@@ -86,16 +120,25 @@ export default function LoginPage() {
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
+          {success && <p className="text-sm text-green-600">{success}</p>}
 
-          <div className="flex justify-center">
+          <div className="flex justify-center space-x-4">
             <button
-              type="submit"
+              type="button"
+              onClick={handleLogin}
               className="w-fit px-10 py-3 font-medium text-gray-950 bg-lime-300 border border-lime-600  rounded-4xl hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500"
             >
               Ingresar
             </button>
+            <button
+              type="button"
+              onClick={handleRegister}
+              className="w-fit px-10 py-3 font-medium text-gray-950 bg-gray-200 border border-gray-400  rounded-4xl hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+            >
+              Registrarse
+            </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

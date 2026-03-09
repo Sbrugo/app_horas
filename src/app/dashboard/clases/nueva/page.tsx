@@ -96,7 +96,7 @@ export default function NewClassPage() {
         </p>
       </header>
       <div className="max-w-2xl mx-auto bg-white p-6 rounded-4xl shadow-md">
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-2">
           <div>
             <label
               htmlFor="student"
