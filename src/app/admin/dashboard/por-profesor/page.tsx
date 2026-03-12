@@ -4,6 +4,58 @@ import { useState } from "react";
 import Link from "next/link";
 import SummaryCard from "@/components/dashboard/SummaryCard";
 
+// Icons
+const CalendarIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-6 w-6 text-green-500"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+    />
+  </svg>
+);
+
+const XCircleIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-6 w-6 text-red-500"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+
+const UserXIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-6 w-6 text-yellow-500"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M13 17h8m-4-4v4m-4-4H3a2 2 0 01-2-2V5c0-1.1.9-2 2-2h14a2 2 0 012 2v4a2 2 0 01-2 2h-5m-4 0a2 2 0 100 4 2 2 0 000-4z"
+    />
+  </svg>
+);
+
 const professors = ["Profesor A", "Profesor B", "Profesor C"];
 
 const professorData: any = {
@@ -11,15 +63,21 @@ const professorData: any = {
     classesGiven: 50,
     canceledByStudent: 5,
     canceledByProfessor: 2,
-    frequentReasons: "Enfermedad (3), Viaje (2)",
-    frequentDays: "Lunes 18hs (2)",
+    history: [
+      { date: "01/02", student: "Alumno X", status: "Asistió" },
+      { date: "08/02", student: "Alumno Y", status: "Cancelada por alumno" },
+      { date: "15/02", student: "Alumno Z", status: "Asistió" },
+    ],
   },
   "Profesor B": {
-    classesGiven: 60,
+    classesGiven: 45,
     canceledByStudent: 3,
-    canceledByProfessor: 4,
-    frequentReasons: "Trabajo (4)",
-    frequentDays: "Miércoles 10hs (3)",
+    canceledByProfessor: 1,
+    history: [
+      { date: "02/02", student: "Alumno A", status: "Asistió" },
+      { date: "09/02", student: "Alumno B", status: "Asistió" },
+      { date: "16/02", student: "Alumno C", status: "Cancelada por profesor" },
+    ],
   },
 };
 
@@ -87,27 +145,33 @@ export default function AdminByProfessorPage() {
           {data && (
             <div className="p-6 bg-white text-gray-950 rounded-lg shadow-md animate-fade-in">
               <h2 className="text-xl font-bold mb-4">{selectedProfessor}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <SummaryCard title="Clases dadas" value={data.classesGiven} />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <SummaryCard
+                  title="Clases dadas"
+                  value={data.classesGiven}
+                  icon={<CalendarIcon />}
+                />
                 <SummaryCard
                   title="Canceladas por alumno"
                   value={data.canceledByStudent}
+                  icon={<UserXIcon />}
                 />
                 <SummaryCard
                   title="Canceladas por profesor"
                   value={data.canceledByProfessor}
+                  icon={<XCircleIcon />}
                 />
               </div>
-              <div className="mt-6 space-y-4">
+              <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold">Motivos más frecuentes:</h4>
-                  <p>{data.frequentReasons}</p>
-                </div>
-                <div>
-                  <h4 className="font-semibold">
-                    Días/horarios con más cancelaciones:
-                  </h4>
-                  <p>{data.frequentDays}</p>
+                  <h4 className="font-semibold">Historial completo:</h4>
+                  <ul className="list-disc list-inside">
+                    {data.history.map((h: any, i: number) => (
+                      <li key={i}>
+                        {h.date} - {h.student} - {h.status}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
@@ -117,3 +181,4 @@ export default function AdminByProfessorPage() {
     </div>
   );
 }
+

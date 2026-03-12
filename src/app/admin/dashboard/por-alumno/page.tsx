@@ -4,6 +4,41 @@ import { useState } from "react";
 import Link from "next/link";
 import SummaryCard from "@/components/dashboard/SummaryCard";
 
+// Icons
+const CalendarIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-6 w-6 text-green-500"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+    />
+  </svg>
+);
+
+const XCircleIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-6 w-6 text-red-500"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+);
+
 const students = ["Alumno X", "Alumno Y", "Alumno Z"];
 
 const studentData: any = {
@@ -94,10 +129,15 @@ export default function AdminByStudentPage() {
             <div className="p-6 bg-white text-gray-950 rounded-lg shadow-md animate-fade-in">
               <h2 className="text-xl font-bold mb-4">{selectedStudent}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <SummaryCard title="Clases totales" value={data.totalClasses} />
+                <SummaryCard
+                  title="Clases totales"
+                  value={data.totalClasses}
+                  icon={<CalendarIcon />}
+                />
                 <SummaryCard
                   title="Clases canceladas"
                   value={data.canceledClasses}
+                  icon={<XCircleIcon />}
                 />
               </div>
               <div className="space-y-4">

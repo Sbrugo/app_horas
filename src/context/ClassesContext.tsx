@@ -15,9 +15,7 @@ interface Class {
   date: string;
   status: string;
   cancellation_reason: string | null;
-  students: {
-    name: string;
-  };
+  student_name: string;
 }
 
 interface ClassesContextType {
@@ -39,18 +37,35 @@ export function ClassesProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
+      const { data: classesData, error: classesError } = await supabase
         .from("classes")
-        .select("id, date, status, cancellation_reason, student_id, students(name)");
-      console.log("Supabase classes data:", data); // Add this line
-      console.log("Supabase classes error:", error); // Add this line
-      if (error) {
-        throw error;
+        .select("*");
+
+      if (classesError) {
+        throw classesError;
       }
-      setClasses(data || []);
+
+      const { data: studentsData, error: studentsError } = await supabase
+        .from("students")
+        .select("id, name");
+
+      if (studentsError) {
+        throw studentsError;
+      }
+
+      const studentsMap = new Map(
+        studentsData.map((student) => [student.id, student.name]),
+      );
+
+      const combinedData = classesData.map((c) => ({
+        ...c,
+        student_name: studentsMap.get(c.student_id) || "Unknown",
+      }));
+
+      setClasses(combinedData || []);
     } catch (err: any) {
       setError(err.message);
-      console.error("Error fetching classes in context:", err); // Add this line
+      console.error("Error fetching data in context:", err);
     } finally {
       setLoading(false);
     }
@@ -58,7 +73,6 @@ export function ClassesProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     fetchClasses();
-    console.log("ClassesContext mounted, fetching classes..." + classes); // Add this line
   }, []);
 
   return (

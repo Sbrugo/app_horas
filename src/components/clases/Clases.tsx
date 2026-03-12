@@ -39,7 +39,7 @@ const Clases = () => {
           {classes.map((c) => (
             <tr key={c.id}>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {c.students.name}
+                {c.student_name}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {c.date}
