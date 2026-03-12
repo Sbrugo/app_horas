@@ -1,9 +1,8 @@
 "use client";
-
-import { useState, useEffect, useMemo } from "react";
+import StudentCombobox from "@/components/clases/StudentCombobox";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { useClasses } from "@/context/ClassesContext";
 
 const cancellationReasons = [
   "Viaje",
@@ -12,11 +11,16 @@ const cancellationReasons = [
   "Sin aviso",
   "Otro",
 ];
-
+interface Student {
+  id: string;
+  name: string;
+}
 export default function NewClassPage() {
-  const { classes, loading: classesLoading } = useClasses();
   const router = useRouter();
-  const [student, setStudent] = useState("");
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null,
+  );
   const [date, setDate] = useState("");
   const [day, setDay] = useState("");
   const [status, setStatus] = useState("Asistió");
@@ -24,21 +28,6 @@ export default function NewClassPage() {
   const [otherReason, setOtherReason] = useState("");
   const [observations, setObservations] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
-
-  const uniqueStudentNames = useMemo(() => {
-    if (classesLoading) return [];
-    const names = classes.map((c) => c.student_name);
-    return Array.from(new Set(names)).sort();
-  }, [classes, classesLoading]);
-
-  const filteredStudents = useMemo(() => {
-    if (!student) return uniqueStudentNames;
-    return uniqueStudentNames.filter((name) =>
-      name.toLowerCase().includes(student.toLowerCase()),
-    );
-  }, [student, uniqueStudentNames]);
 
   useEffect(() => {
     if (date) {
@@ -50,39 +39,31 @@ export default function NewClassPage() {
     }
   }, [date]);
 
-  const handleStudentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStudent(e.target.value);
-    setShowSuggestions(true);
-    setHighlightedIndex(-1);
-  };
+  useEffect(() => {
+    const fetchStudents = async () => {
+      const supabase = createClient();
 
-  const handleSelectStudent = (selectedStudent: string) => {
-    setStudent(selectedStudent);
-    setShowSuggestions(false);
-  };
+      const { data, error } = await supabase
+        .from("students")
+        .select("id, name")
+        .order("name");
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setHighlightedIndex((prevIndex) =>
-        prevIndex < filteredStudents.length - 1 ? prevIndex + 1 : prevIndex,
-      );
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setHighlightedIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : 0));
-    } else if (e.key === "Enter" && highlightedIndex !== -1) {
-      e.preventDefault();
-      handleSelectStudent(filteredStudents[highlightedIndex]);
-    } else if (e.key === "Escape") {
-      setShowSuggestions(false);
-    }
-  };
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      setStudents(data);
+    };
+
+    fetchStudents();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
-    if (!student || !date || !status) {
+    if (!selectedStudentId || !date || !status) {
       setError("Alumno, Fecha y Estado son campos obligatorios.");
       return;
     }
@@ -100,7 +81,7 @@ export default function NewClassPage() {
     const supabase = createClient();
 
     const classData = {
-      student_name: student,
+      student_id: selectedStudentId,
       date,
       day,
       status,
@@ -142,39 +123,17 @@ export default function NewClassPage() {
       </header>
       <div className="max-w-2xl mx-auto bg-white p-6 rounded-4xl shadow-md">
         <form onSubmit={handleSubmit} className="space-y-2">
-          <div className="relative">
+          <div>
             <label
               htmlFor="student"
               className="text-md font-medium text-gray-700"
             >
               Alumno
             </label>
-            <input
-              id="student"
-              type="text"
-              value={student}
-              onChange={handleStudentChange}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 100)} // Delay to allow click on suggestion
-              onKeyDown={handleKeyDown}
-              placeholder="Escriba o seleccione un alumno"
-              className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-200 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            <StudentCombobox
+              students={students}
+              onSelectStudent={setSelectedStudentId}
             />
-            {showSuggestions && filteredStudents.length > 0 && (
-              <ul className="absolute z-10 w-full bg-white border border-gray-300 text-gray-700 rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
-                {filteredStudents.map((name, index) => (
-                  <li
-                    key={name}
-                    onMouseDown={() => handleSelectStudent(name)} // Use onMouseDown to trigger before onBlur
-                    className={`px-4 py-2 cursor-pointer hover:bg-indigo-50 ${
-                      index === highlightedIndex ? "bg-indigo-100" : ""
-                    }`}
-                  >
-                    {name}
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
 
           <div>

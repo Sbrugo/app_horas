@@ -1,14 +1,23 @@
 "use client";
 
-import { createContext, useState, useEffect, useContext, ReactNode } from "react";
+import {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  ReactNode,
+} from "react";
 import { createClient } from "@/lib/supabase/client";
 
 interface Class {
   id: number;
-  student_name: string;
+  student_id: number;
   date: string;
   status: string;
   cancellation_reason: string | null;
+  students: {
+    name: string;
+  };
 }
 
 interface ClassesContextType {
@@ -30,7 +39,9 @@ export function ClassesProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase.from("classes").select("*");
+      const { data, error } = await supabase
+        .from("classes")
+        .select("id, date, status, cancellation_reason, student_id, students(name)");
       console.log("Supabase classes data:", data); // Add this line
       console.log("Supabase classes error:", error); // Add this line
       if (error) {
@@ -47,6 +58,7 @@ export function ClassesProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     fetchClasses();
+    console.log("ClassesContext mounted, fetching classes..." + classes); // Add this line
   }, []);
 
   return (
