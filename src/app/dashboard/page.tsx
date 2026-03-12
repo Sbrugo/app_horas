@@ -1,19 +1,102 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import SummaryCard from "@/components/dashboard/SummaryCard";
+import { createClient } from "@/lib/supabase/client"; // Keep createClient for user auth
+import { useClasses } from "@/context/ClassesContext";
 
 export default function DashboardPage() {
-  const professorName = "Tomás"; // Placeholder
+  const {
+    classes,
+    loading: classesLoading,
+    error: classesError,
+  } = useClasses();
+  const [professorName, setProfessorName] = useState("Profesor");
+  const [stats, setStats] = useState({
+    classesGiven: 0,
+    classesCanceledByStudent: 0,
+    classesCanceledByProfessor: 0,
+  });
+  const [userLoading, setUserLoading] = useState(true);
+  const [userError, setUserError] = useState<string | null>(null);
+
   const currentMonth = new Date().toLocaleString("es-ES", {
     month: "long",
     year: "numeric",
   });
 
-  // Placeholder data
-  const stats = {
-    classesGiven: 15,
-    classesCanceledByStudent: 2,
-    classesCanceledByProfessor: 1,
-  };
+  useEffect(() => {
+    const fetchUserName = async () => {
+      const supabase = createClient();
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          setProfessorName(
+            user.user_metadata.full_name || user.email || "Profesor",
+          );
+        }
+      } catch (error: any) {
+        setUserError(error.message);
+        console.error("Error fetching user name:", error);
+      } finally {
+        setUserLoading(false);
+      }
+    };
+
+    fetchUserName();
+  }, []);
+
+  useEffect(() => {
+    if (!classesLoading && !classesError && classes) {
+      const currentMonthIndex = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+
+      const monthlyStats = classes.reduce(
+        (acc, c) => {
+          const classDate = new Date(c.date);
+          if (
+            classDate.getMonth() === currentMonthIndex &&
+            classDate.getFullYear() === currentYear
+          ) {
+            if (c.status === "Asistió") {
+              acc.classesGiven++;
+            } else if (c.status === "Cancelada por alumno") {
+              acc.classesCanceledByStudent++;
+            } else if (c.status === "Cancelada por profesor") {
+              acc.classesCanceledByProfessor++;
+            }
+          }
+          return acc;
+        },
+        {
+          classesGiven: 0,
+          classesCanceledByStudent: 0,
+          classesCanceledByProfessor: 0,
+        },
+      );
+      setStats(monthlyStats);
+    }
+  }, [classes, classesLoading, classesError]);
+
+  if (userLoading || classesLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8 flex justify-center items-center">
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (userError || classesError) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8 flex justify-center items-center">
+        <p className="text-red-500">Error: {userError || classesError}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
@@ -40,17 +123,14 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mb-8 flex gap-6">
+          <SummaryCard title="Dadas este mes" value={stats.classesGiven} />
           <SummaryCard
-            title="Clases dadas este mes"
-            value={stats.classesGiven}
-          />
-          <SummaryCard
-            title="Clases canceladas por alumno"
+            title="Canceladas por alumno"
             value={stats.classesCanceledByStudent}
           />
           <SummaryCard
-            title="Clases canceladas por profesor"
+            title="Canceladas por profesor"
             value={stats.classesCanceledByProfessor}
           />
         </div>

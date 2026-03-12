@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useClasses } from "@/context/ClassesContext";
 
 const cancellationReasons = [
   "Viaje",
@@ -13,6 +14,7 @@ const cancellationReasons = [
 ];
 
 export default function NewClassPage() {
+  const { classes, loading: classesLoading } = useClasses();
   const router = useRouter();
   const [student, setStudent] = useState("");
   const [date, setDate] = useState("");
@@ -22,6 +24,21 @@ export default function NewClassPage() {
   const [otherReason, setOtherReason] = useState("");
   const [observations, setObservations] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+
+  const uniqueStudentNames = useMemo(() => {
+    if (classesLoading) return [];
+    const names = classes.map((c) => c.student_name);
+    return Array.from(new Set(names)).sort();
+  }, [classes, classesLoading]);
+
+  const filteredStudents = useMemo(() => {
+    if (!student) return uniqueStudentNames;
+    return uniqueStudentNames.filter((name) =>
+      name.toLowerCase().includes(student.toLowerCase()),
+    );
+  }, [student, uniqueStudentNames]);
 
   useEffect(() => {
     if (date) {
@@ -32,6 +49,34 @@ export default function NewClassPage() {
       setDay("");
     }
   }, [date]);
+
+  const handleStudentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStudent(e.target.value);
+    setShowSuggestions(true);
+    setHighlightedIndex(-1);
+  };
+
+  const handleSelectStudent = (selectedStudent: string) => {
+    setStudent(selectedStudent);
+    setShowSuggestions(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIndex((prevIndex) =>
+        prevIndex < filteredStudents.length - 1 ? prevIndex + 1 : prevIndex,
+      );
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : 0));
+    } else if (e.key === "Enter" && highlightedIndex !== -1) {
+      e.preventDefault();
+      handleSelectStudent(filteredStudents[highlightedIndex]);
+    } else if (e.key === "Escape") {
+      setShowSuggestions(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -97,7 +142,7 @@ export default function NewClassPage() {
       </header>
       <div className="max-w-2xl mx-auto bg-white p-6 rounded-4xl shadow-md">
         <form onSubmit={handleSubmit} className="space-y-2">
-          <div>
+          <div className="relative">
             <label
               htmlFor="student"
               className="text-md font-medium text-gray-700"
@@ -108,10 +153,28 @@ export default function NewClassPage() {
               id="student"
               type="text"
               value={student}
-              onChange={(e) => setStudent(e.target.value)}
+              onChange={handleStudentChange}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 100)} // Delay to allow click on suggestion
+              onKeyDown={handleKeyDown}
               placeholder="Escriba o seleccione un alumno"
               className="w-full px-4 py-3 mt-1 text-gray-900 bg-gray-200 border border-gray-300 rounded-4xl shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
             />
+            {showSuggestions && filteredStudents.length > 0 && (
+              <ul className="absolute z-10 w-full bg-white border border-gray-300 text-gray-700 rounded-md shadow-lg mt-1 max-h-60 overflow-auto">
+                {filteredStudents.map((name, index) => (
+                  <li
+                    key={name}
+                    onMouseDown={() => handleSelectStudent(name)} // Use onMouseDown to trigger before onBlur
+                    className={`px-4 py-2 cursor-pointer hover:bg-indigo-50 ${
+                      index === highlightedIndex ? "bg-indigo-100" : ""
+                    }`}
+                  >
+                    {name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div>
@@ -229,7 +292,7 @@ export default function NewClassPage() {
               type="submit"
               className="px-4 py-2 font-medium bg-lime-300 border border-lime-600 text-gray-950 rounded-4xl hover:bg-green-700"
             >
-              ✔ Guardar clase
+              Guardar
             </button>
           </div>
         </form>
