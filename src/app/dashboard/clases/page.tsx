@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useClasses } from "@/context/ClassesContext";
 import Clases from "@/components/clases/Clases";
+import { useClasses } from "@/app/hooks/useClasses";
 
 export default function MyClassesPage() {
-  const { classes, loading, error } = useClasses();
+  const { data: classes = [], isLoading } = useClasses();
   console.log("Clases en MyClassesPage:", classes);
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 p-8 flex justify-center items-center">
         <p>Cargando clases...</p>
@@ -15,13 +15,13 @@ export default function MyClassesPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-8 flex justify-center items-center">
-        <p className="text-red-500">Error: {error}</p>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 p-8 flex justify-center items-center">
+  //       <p className="text-red-500">Error: {error}</p>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">

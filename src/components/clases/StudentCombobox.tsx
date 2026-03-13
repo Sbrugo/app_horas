@@ -10,11 +10,13 @@ interface Student {
 interface StudentComboboxProps {
   students: Student[];
   onSelectStudent: (studentId: string | null) => void;
+  onInputChange: (value: string) => void;
 }
 
 export default function StudentCombobox({
   students,
   onSelectStudent,
+  onInputChange,
 }: StudentComboboxProps) {
   const [inputValue, setInputValue] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -32,12 +34,14 @@ export default function StudentCombobox({
     setShowSuggestions(true);
     setHighlightedIndex(-1);
     onSelectStudent(null);
+    onInputChange(e.target.value);
   };
 
   const handleSelectStudent = (student: Student) => {
     setInputValue(student.name);
     setShowSuggestions(false);
     onSelectStudent(student.id);
+    onInputChange(student.name);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

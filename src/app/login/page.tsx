@@ -68,6 +68,8 @@ export default function LoginPage() {
           },
         },
       });
+      console.log("Data session:", data.session);
+      console.log("Data user:", data.user);
 
       if (error) {
         setError(error.message);

@@ -23,6 +23,7 @@ export default function NewClassPage() {
   );
   const [date, setDate] = useState("");
   const [day, setDay] = useState("");
+  const [studentName, setStudentName] = useState("");
   const [status, setStatus] = useState("Asistió");
   const [cancellationReason, setCancellationReason] = useState("");
   const [otherReason, setOtherReason] = useState("");
@@ -31,7 +32,7 @@ export default function NewClassPage() {
 
   useEffect(() => {
     if (date) {
-      const dateObj = new Date(date + "T00:00:00"); // Ensure correct timezone handling
+      const dateObj = new Date(date + "T00:00:00");
       const dayName = dateObj.toLocaleDateString("es-ES", { weekday: "long" });
       setDay(dayName);
     } else {
@@ -63,7 +64,7 @@ export default function NewClassPage() {
     e.preventDefault();
     setError(null);
 
-    if (!selectedStudentId || !date || !status) {
+    if ((!selectedStudentId && !studentName) || !date || !status) {
       setError("Alumno, Fecha y Estado son campos obligatorios.");
       return;
     }
@@ -79,9 +80,30 @@ export default function NewClassPage() {
     }
 
     const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
+    if (!user) {
+      setError("Usuario no autenticado");
+      return;
+    }
+
+    let studentId = selectedStudentId;
+
+    if (!studentId && studentName) {
+      const { data: newStudent, error } = await supabase
+        .from("students")
+        .insert({ name: studentName, user_id: user.id })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      studentId = newStudent.id;
+    }
     const classData = {
-      student_id: selectedStudentId,
+      student_id: studentId,
       date,
       day,
       status,
@@ -136,6 +158,7 @@ export default function NewClassPage() {
               <StudentCombobox
                 students={students}
                 onSelectStudent={setSelectedStudentId}
+                onInputChange={setStudentName}
               />
             </div>
 

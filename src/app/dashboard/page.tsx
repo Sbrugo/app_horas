@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import SummaryCard from "@/components/dashboard/SummaryCard";
 import { createClient } from "@/lib/supabase/client";
-import { useClasses } from "@/context/ClassesContext";
+// import { useClasses } from "@/context/ClassesContext";
 import Clases from "@/components/clases/Clases";
 
 // Icons
@@ -77,11 +77,6 @@ const UserXIcon = () => (
 );
 
 export default function DashboardPage() {
-  const {
-    classes,
-    loading: classesLoading,
-    error: classesError,
-  } = useClasses();
   const [professorName, setProfessorName] = useState("Profesor");
   const [stats, setStats] = useState({
     classesGiven: 0,
@@ -119,54 +114,6 @@ export default function DashboardPage() {
 
     fetchUserName();
   }, []);
-
-  useEffect(() => {
-    if (!classesLoading && !classesError && classes) {
-      const currentMonthIndex = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-
-      const monthlyStats = classes.reduce(
-        (acc, c) => {
-          const classDate = new Date(c.date);
-          if (
-            classDate.getMonth() === currentMonthIndex &&
-            classDate.getFullYear() === currentYear
-          ) {
-            if (c.status === "Asistió") {
-              acc.classesGiven++;
-            } else if (c.status === "Cancelada por alumno") {
-              acc.classesCanceledByStudent++;
-            } else if (c.status === "Cancelada por profesor") {
-              acc.classesCanceledByProfessor++;
-            }
-          }
-          return acc;
-        },
-        {
-          classesGiven: 0,
-          classesCanceledByStudent: 0,
-          classesCanceledByProfessor: 0,
-        },
-      );
-      setStats(monthlyStats);
-    }
-  }, [classes, classesLoading, classesError]);
-
-  if (userLoading || classesLoading) {
-    return (
-      <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8 flex justify-center items-center">
-        <p className="text-gray-500">Cargando...</p>
-      </div>
-    );
-  }
-
-  if (userError || classesError) {
-    return (
-      <div className="min-h-screen bg-gray-100 p-4 sm:p-6 lg:p-8 flex justify-center items-center">
-        <p className="text-red-500">Error: {userError || classesError}</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-100">

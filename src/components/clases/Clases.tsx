@@ -1,9 +1,7 @@
-import { useClasses } from "@/context/ClassesContext";
-import React from "react";
+import { useClasses } from "@/app/hooks/useClasses";
 
 const Clases = () => {
-  const { classes, loading, error } = useClasses();
-
+  const { data: classes = [] } = useClasses();
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
@@ -39,7 +37,7 @@ const Clases = () => {
           {classes.map((c) => (
             <tr key={c.id}>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {c.student_name}
+                {"Alumno"}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {c.date}
